@@ -1,5 +1,6 @@
 const express = require("express");
 const axios = require("axios");
+const natural = require("natural");
 
 const Event = require("../models/Event");
 const Department = require("../models/Department");
@@ -7,136 +8,249 @@ const Faculty = require("../models/Faculty");
 const Facility = require("../models/Facility");
 const Notice = require("../models/Notice");
 const Cache = require("../models/Cache");
+
 const router = express.Router();
 
-// 🔎 Normalize question for better caching
+
+// ---------------- ML CLASSIFIER ----------------
+let classifier;
+
+natural.BayesClassifier.load("./ml/model.json", null, (err, cl) => {
+ if (err) {
+  console.log("ML model load error:", err);
+ } else {
+  classifier = cl;
+  console.log("ML intent classifier loaded");
+ }
+});
+
+
+// ---------------- NORMALIZE QUESTION ----------------
 function normalizeQuestion(q) {
-    return q
-        .toLowerCase()
-        .replace(/[^\w\s]/g, "")   // remove punctuation
-        .replace(/\s+/g, " ")      // remove extra spaces
-        .trim();
+ return q
+  .toLowerCase()
+  .replace(/[^\w\s]/g, "")
+  .replace(/\s+/g, " ")
+  .trim();
 }
 
-// ⏱️ Simple in-memory cooldown (per server)
+
+// ---------------- RATE LIMIT ----------------
 let lastRequestTime = 0;
-const COOLDOWN_MS = 3000; // 2.5 seconds
+const COOLDOWN_MS = 3000;
 
-function buildContext(data) {
-    let context = "COLLEGE INFORMATION:\n\n";
 
-    context += "DEPARTMENTS:\n";
-    data.departments.forEach(d => {
-        context += `• ${d.name} department is located at ${d.location}. HOD: ${d.hod}.\n`;
-    });
-
-    context += "\nFACULTY MEMBERS:\n";
-    data.faculty.forEach(f => {
-        context += `• ${f.name} is ${f.designation} in ${f.department} department.\n`;
-    });
-
-    context += "\nEVENTS:\n";
-    data.events.forEach(e => {
-        context += `• ${e.title} will be held at ${e.venue} on ${e.eventDate}.\n`;
-    });
-
-    context += "\nFACILITIES:\n";
-    data.facilities.forEach(f => {
-        context += `• ${f.name} located at ${f.location}, available during ${f.timings}.\n`;
-    });
-
-    context += "\nNOTICES:\n";
-    data.notices.forEach(n => {
-        context += `• ${n.title}: ${n.details}\n`;
-    });
-
-    return context;
-}
+// ---------------- CHAT ROUTE ----------------
 router.post("/", async (req, res) => {
-    let userQuestion = normalizeQuestion(req.body.message);
 
-// synonym handling
-userQuestion = userQuestion
-    .replace(/\bcs\b/g, "computer engineering")
-    .replace(/\bcomp\b/g, "computer engineering")
-    .replace(/\bit\b/g, "information technology");
+ let userQuestion = normalizeQuestion(req.body.message);
 
-    // 🔍 Check if answer already cached
-    const cached = await Cache.findOne({ question: userQuestion });
+ // synonym replacement
+ userQuestion = userQuestion
+  .replace(/\bcs\b/g, "computer engineering")
+  .replace(/\bcomp\b/g, "computer engineering")
+  .replace(/\bit\b/g, "information technology");
 
-    if (cached) {
-        console.log("✅ Returning cached answer");
-        return res.json({ reply: cached.answer });
-    }
-    const now = Date.now();
-    // 🚫 Prevent spamming Gemini
-    if (now - lastRequestTime < COOLDOWN_MS) {
-        return res.json({
-            reply: "⏳ Please wait a moment before asking another question."
-        });
-    }
 
-    lastRequestTime = now;
-    try {
-        const data = {
-            events: await Event.find().select("title venue eventDate -_id"),
-            departments: await Department.find().select("name hod location -_id"),
-            faculty: await Faculty.find().select("name department designation -_id"),
-            facilities: await Facility.find().select("name location timings -_id"),
-            notices: await Notice.find().select("title details -_id")
-        };
-const context = buildContext(data);
-const prompt = `
-You are an official AI assistant for a college campus.
+ // -------- CACHE CHECK --------
+ const cached = await Cache.findOne({ question: userQuestion });
 
-Use ONLY the information below to answer.
-Understand department synonyms like:
-- CS = Computer Engineering
-- Comp = Computer Engineering
-- IT = Information Technology
+ if (cached) {
+  console.log("Returning cached answer");
+  return res.json({ reply: cached.answer });
+ }
 
-If answer is not found, say:
-"I don’t have that information in the college database."
 
-Keep answers short and factual.
+ // -------- RATE LIMIT --------
+ const now = Date.now();
 
-${context}
+ if (now - lastRequestTime < COOLDOWN_MS) {
+  return res.json({
+   reply: "Please wait a moment before asking another question."
+  });
+ }
+
+ lastRequestTime = now;
+
+
+ try {
+
+  // -------- INTENT DETECTION --------
+  let intent = "unknown";
+
+  if (classifier) {
+   intent = classifier.classify(userQuestion);
+  }
+  console.log("User question:", userQuestion);
+  console.log("Predicted intent:", intent);
+
+
+  let responseText = "";
+
+
+  // -------- DEPARTMENT HOD --------
+  if (intent === "department_hod") {
+
+   const dept = await Department.findOne({
+    name: /computer/i
+   });
+
+   if (dept) {
+    responseText =
+     `The HOD of ${dept.name} department is ${dept.hod}.`;
+   }
+
+  }
+
+
+  // -------- FACULTY --------
+  else if (intent === "faculty_query") {
+
+   const faculty = await Faculty.find();
+
+   responseText = faculty.map(f =>
+    `${f.name} (${f.designation}) - ${f.department}`
+   ).join("\n");
+
+  }
+
+
+  // -------- EVENTS --------
+  else if (intent === "event_query") {
+
+   const events = await Event.find();
+
+   responseText = events.map(e =>
+    `${e.title} on ${e.eventDate} at ${e.venue}`
+   ).join("\n");
+
+  }
+
+
+  // -------- FACILITIES --------
+  else if (intent === "facility_query") {
+
+   const facilities = await Facility.find();
+
+   responseText = facilities.map(f =>
+    `${f.name} located at ${f.location}`
+   ).join("\n");
+
+  }
+
+
+  // -------- NOTICES --------
+  else if (intent === "notice_query") {
+
+   const notices = await Notice
+    .find()
+    .sort({ date: -1 })
+    .limit(3);
+
+   responseText = notices.map(n =>
+    `${n.title} - ${n.details}`
+   ).join("\n");
+
+  }
+  else if (intent === "greeting") {
+
+ responseText =
+ "Hello! I am CampusConnect AI. I can help you with information about departments, faculty, events, facilities, and notices.";
+
+}
+else if(intent === "unknown"){
+ responseText = "Sorry, I didn't understand that. You can ask about departments, faculty, events, facilities, or notices.";
+}
+
+
+  // -------- FALLBACK: GEMINI WITH CONTEXT --------
+  if (!responseText) {
+
+   const data = {
+    events: await Event.find().select("title venue eventDate -_id"),
+    departments: await Department.find().select("name hod location -_id"),
+    faculty: await Faculty.find().select("name department designation -_id"),
+    facilities: await Facility.find().select("name location timings -_id"),
+    notices: await Notice.find().select("title details -_id")
+   };
+
+   const prompt = `
+You are a smart campus assistant.
+
+Use the following database information to answer.
+
+DATABASE:
+${JSON.stringify(data)}
 
 QUESTION:
 ${userQuestion}
 `;
 
-
-        const response = await axios({
-            method: "POST",
-            url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-            params: { key: process.env.GEMINI_KEY },
-            headers: { "Content-Type": "application/json" },
-            data: {
-                contents: [
-                    {
-                        parts: [{ text: prompt }]
-                    }
-                ]
-            }
-        });
-
-        const reply =
-            response.data.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "No AI response";
-
-        // 💾 Save to cache
-        await Cache.create({
-            question: userQuestion,
-            answer: reply
-        });
-
-        res.json({ reply });
-
-    } catch (error) {
-        console.error("Gemini Error:", error.response?.data || error.message);
-        res.status(500).json({ reply: "Error talking to AI" });
+   const response = await axios({
+    method: "POST",
+    url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    params: { key: process.env.GEMINI_KEY },
+    headers: { "Content-Type": "application/json" },
+    data: {
+     contents: [{ parts: [{ text: prompt }] }]
     }
+   });
+
+   responseText =
+    response.data.candidates?.[0]?.content?.parts?.[0]?.text ||
+    "No AI response";
+  }
+
+
+  // -------- GEMINI FORMAT RESPONSE --------
+  else {
+
+   const prompt = `
+You are a smart campus assistant.
+
+Convert this information into a helpful natural response.
+
+DATA:
+${responseText}
+
+QUESTION:
+${userQuestion}
+`;
+
+   const ai = await axios({
+    method: "POST",
+    url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    params: { key: process.env.GEMINI_KEY },
+    headers: { "Content-Type": "application/json" },
+    data: {
+     contents: [{ parts: [{ text: prompt }] }]
+    }
+   });
+
+   responseText =
+    ai.data.candidates?.[0]?.content?.parts?.[0]?.text || responseText;
+  }
+
+
+  // -------- SAVE CACHE --------
+  await Cache.create({
+   question: userQuestion,
+   answer: responseText
+  });
+
+
+  res.json({ reply: responseText });
+
+
+ } catch (error) {
+
+  console.error("Gemini Error:", error.response?.data || error.message);
+
+  res.status(500).json({
+   reply: "Error talking to AI"
+  });
+ }
+
 });
 
 module.exports = router;

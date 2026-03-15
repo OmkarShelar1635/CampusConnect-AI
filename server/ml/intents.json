@@ -1,0 +1,41 @@
+[
+  { "text": "hello", "intent": "greeting" },
+  { "text": "hi", "intent": "greeting" },
+  { "text": "hey", "intent": "greeting" },
+  { "text": "good morning", "intent": "greeting" },
+  { "text": "good evening", "intent": "greeting" },
+
+  { "text": "who is hod of cs", "intent": "department_hod" },
+  { "text": "who is hod of computer engineering", "intent": "department_hod" },
+  { "text": "head of computer department", "intent": "department_hod" },
+  { "text": "who leads computer engineering department", "intent": "department_hod" },
+  { "text": "hod of cs department", "intent": "department_hod" },
+
+  { "text": "show faculty members", "intent": "faculty_query" },
+  { "text": "list faculty of computer department", "intent": "faculty_query" },
+  { "text": "who teaches in computer engineering", "intent": "faculty_query" },
+  { "text": "computer department teachers", "intent": "faculty_query" },
+  { "text": "faculty list", "intent": "faculty_query" },
+
+  { "text": "list upcoming events", "intent": "event_query" },
+  { "text": "any events today", "intent": "event_query" },
+  { "text": "college events", "intent": "event_query" },
+  { "text": "show events", "intent": "event_query" },
+  { "text": "what events are happening", "intent": "event_query" },
+
+  { "text": "library timing", "intent": "facility_query" },
+  { "text": "where is library", "intent": "facility_query" },
+  { "text": "computer lab location", "intent": "facility_query" },
+  { "text": "facilities available", "intent": "facility_query" },
+  { "text": "lab timing", "intent": "facility_query" },
+
+  { "text": "latest notice", "intent": "notice_query" },
+  { "text": "recent announcement", "intent": "notice_query" },
+  { "text": "show notices", "intent": "notice_query" },
+  { "text": "college notice board", "intent": "notice_query" },
+  { "text": "any new notice", "intent": "notice_query" },
+
+  { "text": "how are you", "intent": "unknown" },
+  { "text": "tell me a joke", "intent": "unknown" },
+  { "text": "what is ai", "intent": "unknown" }
+]
