@@ -1,7 +1,7 @@
-const express = require("express");
-const Facility = require("../models/Facility");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
 
+import express from "express";
+import Facility from "../models/Facility.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 const router = express.Router();
 // UPDATE department
 router.put("/:id", protect, adminOnly, async (req,res)=>{
@@ -43,4 +43,4 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
   res.send("Deleted");
 });
 
-module.exports = router;
+export default router;

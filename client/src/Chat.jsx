@@ -55,7 +55,7 @@ export default function Chat({ role, setIsLoggedIn }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/chat", { message: userMessage });
+      const res = await axios.post("/api/chat", { message: userMessage });
       setChat(prev => [...prev, { u: userMessage, b: res.data.reply }]);
     } catch (err) {
       setChat(prev => [...prev, { u: userMessage, b: "Error contacting server" }]);

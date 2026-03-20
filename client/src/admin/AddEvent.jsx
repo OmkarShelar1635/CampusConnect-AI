@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function AddDepartment() {
+export default function AddEvent() {
 
-    const [form, setForm] = useState({ name: "", hod: "", location: "", contact: "" });
+    const [form, setForm] = useState({ title: "", venue: "", eventDate: "" });
     const [data, setData] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
@@ -14,7 +15,7 @@ export default function AddDepartment() {
     };
 
     const load = async () => {
-        const res = await axios.get("http://localhost:5000/api/departments");
+        const res = await axios.get("/api/events");
         setData(res.data);
     };
 
@@ -22,23 +23,23 @@ export default function AddDepartment() {
 
     const save = async () => {
         if (editingId) {
-            await axios.put(`http://localhost:5000/api/departments/${editingId}`, form, token);
+            await axios.put(`http://localhost:5000/api/events/${editingId}`, form, token);
             setEditingId(null);
         } else {
-            await axios.post("http://localhost:5000/api/departments", form, token);
+            await axios.post("http://localhost:5000/api/events", form, token);
         }
 
-        setForm({ name: "", hod: "", location: "", contact: "" });
+        setForm({ title: "", venue: "", eventDate: "" });
         load();
     };
 
-    const edit = (dept) => {
-        setForm(dept);
-        setEditingId(dept._id);
+    const edit = (evt) => {
+        setForm(evt);
+        setEditingId(evt._id);
     };
 
     const del = async (id) => {
-        await axios.delete(`http://localhost:5000/api/departments/${id}`, token);
+        await axios.delete(`http://localhost:5000/api/events/${id}`, token);
         load();
     };
 
@@ -49,15 +50,15 @@ export default function AddDepartment() {
             <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-4
                      text-slate-800 dark:text-slate-100">
-                    {editingId ? "Edit Department" : "Add Department"}
+                    {editingId ? "Edit Event" : "Add Event"}
                 </h3>
 
                 <div className="flex flex-wrap gap-3">
 
                     <input
-                        placeholder="Name"
-                        value={form.name}
-                        onChange={e => setForm({ ...form, name: e.target.value })}
+                        placeholder="Event Title"
+                        value={form.title}
+                        onChange={e => setForm({ ...form, title: e.target.value })}
                         className="px-4 py-2 rounded-lg border
                      bg-white text-slate-800
                      border-slate-300
@@ -67,9 +68,9 @@ export default function AddDepartment() {
                     />
 
                     <input
-                        placeholder="HOD"
-                        value={form.hod}
-                        onChange={e => setForm({ ...form, hod: e.target.value })}
+                        placeholder="Venue"
+                        value={form.venue}
+                        onChange={e => setForm({ ...form, venue: e.target.value })}
                         className="px-4 py-2 rounded-lg border
                      bg-white text-slate-800
                      border-slate-300
@@ -79,27 +80,14 @@ export default function AddDepartment() {
                     />
 
                     <input
-                        placeholder="Location"
-                        value={form.location}
-                        onChange={e => setForm({ ...form, location: e.target.value })}
+                        type="date"
+                        value={form.eventDate}
+                        onChange={e => setForm({ ...form, eventDate: e.target.value })}
                         className="px-4 py-2 rounded-lg border
                      bg-white text-slate-800
                      border-slate-300
                      dark:bg-slate-800 dark:text-slate-100
-                     dark:border-slate-600
-                     placeholder-slate-400 dark:placeholder-slate-500"
-                    />
-
-                    <input
-                        placeholder="Contact Email"
-                        value={form.contact}
-                        onChange={e => setForm({ ...form, contact: e.target.value })}
-                        className="px-4 py-2 rounded-lg border
-                     bg-white text-slate-800
-                     border-slate-300
-                     dark:bg-slate-800 dark:text-slate-100
-                     dark:border-slate-600
-                     placeholder-slate-400 dark:placeholder-slate-500"
+                     dark:border-slate-600"
                     />
 
                     <button
@@ -122,10 +110,9 @@ export default function AddDepartment() {
                     <thead className="bg-slate-200 text-slate-800
                           dark:bg-slate-800 dark:text-slate-200">
                         <tr>
-                            <th className="p-3 text-center">Name</th>
-                            <th className="p-3 text-center">HOD</th>
-                            <th className="p-3 text-center">Location</th>
-                            <th className="p-3 text-center">Contact</th>
+                            <th className="p-3 text-center">Title</th>
+                            <th className="p-3 text-center">Venue</th>
+                            <th className="p-3 text-center">Date</th>
                             <th className="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -138,19 +125,19 @@ export default function AddDepartment() {
                          hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                             >
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.name}
+                                    {d.title}
                                 </td>
 
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.hod}
+                                    {d.venue}
                                 </td>
 
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.location}
-                                </td>
-
-                                <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.contact}
+                                    {new Date(d.eventDate).toLocaleDateString("en-IN", {
+                                        day: "numeric",
+                                        month: "long",
+                                        year: "numeric"
+                                    })}
                                 </td>
 
                                 <td className="p-3">

@@ -1,8 +1,9 @@
-const express=require("express");
-const bcrypt=require("bcryptjs");
-const jwt=require("jsonwebtoken");
-const User=require("../models/User");
-const router=express.Router();
+
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import express from "express";
+const router = express.Router();
 
 router.post("/register", async (req, res) => {
  try {
@@ -76,5 +77,4 @@ router.post("/login", async (req, res) => {
   res.status(500).json({ message: "Server error" });
  }
 });
-
-module.exports=router;
+export default router;

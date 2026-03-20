@@ -7,10 +7,11 @@ import Chat from "./Chat";
 import Admin from "./Admin";
 import Login from "./auth/Login";
 import GetStarted from "./GetStarted";
-
+import logo from "./assets/logo2.png";
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState("");
+  
   useEffect(() => {
     const link =
       document.querySelector("link[rel~='icon']") ||
@@ -18,7 +19,7 @@ function App() {
 
     link.rel = "icon";
     link.type = "image/x-icon";
-    link.href = process.env.PUBLIC_URL + "/logo.png?v=1"; // cache-buster
+    link.href =  logo; // cache-buster
 
     document.head.appendChild(link);
   }, []);

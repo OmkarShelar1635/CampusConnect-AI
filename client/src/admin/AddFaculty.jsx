@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function AddFacility() {
+export default function AddFaculty() {
 
-    const [form, setForm] = useState({ name: "", location: "", timings: "" });
+    const [form, setForm] = useState({ name: "", department: "", designation: "", email: "" });
     const [data, setData] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
@@ -15,7 +15,7 @@ export default function AddFacility() {
     };
 
     const load = async () => {
-        const res = await axios.get("http://localhost:5000/api/facilities");
+        const res = await axios.get("/api/faculty");
         setData(res.data);
     };
 
@@ -23,23 +23,23 @@ export default function AddFacility() {
 
     const save = async () => {
         if (editingId) {
-            await axios.put(`http://localhost:5000/api/facilities/${editingId}`, form, token);
+            await axios.put(`http://localhost:5000/api/faculty/${editingId}`, form, token);
             setEditingId(null);
         } else {
-            await axios.post("http://localhost:5000/api/facilities", form, token);
+            await axios.post("http://localhost:5000/api/faculty", form, token);
         }
 
-        setForm({ name: "", location: "", timings: "" });
+        setForm({ name: "", department: "", designation: "", email: "" });
         load();
     };
 
-    const edit = (fcity) => {
-        setForm(fcity);
-        setEditingId(fcity._id);
+    const edit = (fcuty) => {
+        setForm(fcuty);
+        setEditingId(fcuty._id);
     };
 
     const del = async (id) => {
-        await axios.delete(`http://localhost:5000/api/facilities/${id}`, token);
+        await axios.delete(`http://localhost:5000/api/faculty/${id}`, token);
         load();
     };
 
@@ -50,13 +50,13 @@ export default function AddFacility() {
             <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-4
                      text-slate-800 dark:text-slate-100">
-                    {editingId ? "Edit Facility" : "Add Facility"}
+                    {editingId ? "Edit Faculty" : "Add Faculty"}
                 </h3>
 
                 <div className="flex flex-wrap gap-3">
 
                     <input
-                        placeholder="Facility"
+                        placeholder="Name"
                         value={form.name}
                         onChange={e => setForm({ ...form, name: e.target.value })}
                         className="px-4 py-2 rounded-lg border
@@ -67,9 +67,9 @@ export default function AddFacility() {
                     />
 
                     <input
-                        placeholder="Location"
-                        value={form.location}
-                        onChange={e => setForm({ ...form, location: e.target.value })}
+                        placeholder="Department"
+                        value={form.department}
+                        onChange={e => setForm({ ...form, department: e.target.value })}
                         className="px-4 py-2 rounded-lg border
                      bg-white text-slate-800 border-slate-300
                      dark:bg-slate-800 dark:text-slate-100
@@ -78,9 +78,20 @@ export default function AddFacility() {
                     />
 
                     <input
-                        placeholder="Timing"
-                        value={form.timings}
-                        onChange={e => setForm({ ...form, timings: e.target.value })}
+                        placeholder="Designation"
+                        value={form.designation}
+                        onChange={e => setForm({ ...form, designation: e.target.value })}
+                        className="px-4 py-2 rounded-lg border
+                     bg-white text-slate-800 border-slate-300
+                     dark:bg-slate-800 dark:text-slate-100
+                     dark:border-slate-600
+                     placeholder-slate-400 dark:placeholder-slate-500"
+                    />
+
+                    <input
+                        placeholder="Email"
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
                         className="px-4 py-2 rounded-lg border
                      bg-white text-slate-800 border-slate-300
                      dark:bg-slate-800 dark:text-slate-100
@@ -108,9 +119,10 @@ export default function AddFacility() {
                     <thead className="bg-slate-200 text-slate-800
                           dark:bg-slate-800 dark:text-slate-200">
                         <tr>
-                            <th className="p-3 text-center">Facility</th>
-                            <th className="p-3 text-center">Location</th>
-                            <th className="p-3 text-center">Timing</th>
+                            <th className="p-3 text-center">Name</th>
+                            <th className="p-3 text-center">Department</th>
+                            <th className="p-3 text-center">Designation</th>
+                            <th className="p-3 text-center">Email</th>
                             <th className="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -127,11 +139,15 @@ export default function AddFacility() {
                                 </td>
 
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.location}
+                                    {d.department}
                                 </td>
 
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.timings}
+                                    {d.designation}
+                                </td>
+
+                                <td className="p-3 text-center text-slate-800 dark:text-slate-200">
+                                    {d.email}
                                 </td>
 
                                 <td className="p-3">
@@ -155,7 +171,6 @@ export default function AddFacility() {
 
                                     </div>
                                 </td>
-
                             </tr>
                         ))}
                     </tbody>

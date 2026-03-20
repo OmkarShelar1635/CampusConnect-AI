@@ -1,13 +1,13 @@
-const express = require("express");
-const axios = require("axios");
-const natural = require("natural");
+import express from "express";
+import axios from "axios";
+import natural from "natural";
 
-const Event = require("../models/Event");
-const Department = require("../models/Department");
-const Faculty = require("../models/Faculty");
-const Facility = require("../models/Facility");
-const Notice = require("../models/Notice");
-const Cache = require("../models/Cache");
+import Event from "../models/Event.js";
+import Department from "../models/Department.js";
+import Faculty from "../models/Faculty.js";
+import Facility from "../models/Facility.js";
+import Notice from "../models/Notice.js";
+import Cache from "../models/Cache.js";
 
 const router = express.Router();
 
@@ -253,4 +253,4 @@ ${userQuestion}
 
 });
 
-module.exports = router;
+export default router;

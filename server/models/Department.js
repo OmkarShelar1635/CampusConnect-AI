@@ -1,6 +1,6 @@
-const mongoose=require("mongoose");
+import mongoose from "mongoose";
 
-module.exports=mongoose.model("Department",new mongoose.Schema({
+export default mongoose.model("Department",new mongoose.Schema({
  name:String,
  hod:String,
  location:String,

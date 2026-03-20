@@ -1,7 +1,6 @@
-const express = require("express");
-const Department = require("../models/Department");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
-
+import express from "express";
+import Department from "../models/Department.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // GET all departments
@@ -43,4 +42,4 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
   res.send("Deleted");
 });
 
-module.exports = router;
+export default router;

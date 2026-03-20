@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
-exports.protect = (req, res, next) => {
+export const protect = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   // 🔍 Debug log (add this temporarily)
@@ -24,7 +24,7 @@ exports.protect = (req, res, next) => {
   }
 };
 
-exports.adminOnly = (req, res, next) => {
+export const adminOnly = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).send("Admin only");
   }

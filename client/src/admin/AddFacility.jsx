@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function AddEvent() {
+export default function AddFacility() {
 
-    const [form, setForm] = useState({ title: "", venue: "", eventDate: "" });
+    const [form, setForm] = useState({ name: "", location: "", timings: "" });
     const [data, setData] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
@@ -15,7 +15,7 @@ export default function AddEvent() {
     };
 
     const load = async () => {
-        const res = await axios.get("http://localhost:5000/api/events");
+        const res = await axios.get("/api/facilities");
         setData(res.data);
     };
 
@@ -23,23 +23,23 @@ export default function AddEvent() {
 
     const save = async () => {
         if (editingId) {
-            await axios.put(`http://localhost:5000/api/events/${editingId}`, form, token);
+            await axios.put(`http://localhost:5000/api/facilities/${editingId}`, form, token);
             setEditingId(null);
         } else {
-            await axios.post("http://localhost:5000/api/events", form, token);
+            await axios.post("http://localhost:5000/api/facilities", form, token);
         }
 
-        setForm({ title: "", venue: "", eventDate: "" });
+        setForm({ name: "", location: "", timings: "" });
         load();
     };
 
-    const edit = (evt) => {
-        setForm(evt);
-        setEditingId(evt._id);
+    const edit = (fcity) => {
+        setForm(fcity);
+        setEditingId(fcity._id);
     };
 
     const del = async (id) => {
-        await axios.delete(`http://localhost:5000/api/events/${id}`, token);
+        await axios.delete(`http://localhost:5000/api/facilities/${id}`, token);
         load();
     };
 
@@ -50,44 +50,42 @@ export default function AddEvent() {
             <div className="mb-6">
                 <h3 className="font-semibold text-lg mb-4
                      text-slate-800 dark:text-slate-100">
-                    {editingId ? "Edit Event" : "Add Event"}
+                    {editingId ? "Edit Facility" : "Add Facility"}
                 </h3>
 
                 <div className="flex flex-wrap gap-3">
 
                     <input
-                        placeholder="Event Title"
-                        value={form.title}
-                        onChange={e => setForm({ ...form, title: e.target.value })}
+                        placeholder="Facility"
+                        value={form.name}
+                        onChange={e => setForm({ ...form, name: e.target.value })}
                         className="px-4 py-2 rounded-lg border
-                     bg-white text-slate-800
-                     border-slate-300
+                     bg-white text-slate-800 border-slate-300
                      dark:bg-slate-800 dark:text-slate-100
                      dark:border-slate-600
                      placeholder-slate-400 dark:placeholder-slate-500"
                     />
 
                     <input
-                        placeholder="Venue"
-                        value={form.venue}
-                        onChange={e => setForm({ ...form, venue: e.target.value })}
+                        placeholder="Location"
+                        value={form.location}
+                        onChange={e => setForm({ ...form, location: e.target.value })}
                         className="px-4 py-2 rounded-lg border
-                     bg-white text-slate-800
-                     border-slate-300
+                     bg-white text-slate-800 border-slate-300
                      dark:bg-slate-800 dark:text-slate-100
                      dark:border-slate-600
                      placeholder-slate-400 dark:placeholder-slate-500"
                     />
 
                     <input
-                        type="date"
-                        value={form.eventDate}
-                        onChange={e => setForm({ ...form, eventDate: e.target.value })}
+                        placeholder="Timing"
+                        value={form.timings}
+                        onChange={e => setForm({ ...form, timings: e.target.value })}
                         className="px-4 py-2 rounded-lg border
-                     bg-white text-slate-800
-                     border-slate-300
+                     bg-white text-slate-800 border-slate-300
                      dark:bg-slate-800 dark:text-slate-100
-                     dark:border-slate-600"
+                     dark:border-slate-600
+                     placeholder-slate-400 dark:placeholder-slate-500"
                     />
 
                     <button
@@ -110,9 +108,9 @@ export default function AddEvent() {
                     <thead className="bg-slate-200 text-slate-800
                           dark:bg-slate-800 dark:text-slate-200">
                         <tr>
-                            <th className="p-3 text-center">Title</th>
-                            <th className="p-3 text-center">Venue</th>
-                            <th className="p-3 text-center">Date</th>
+                            <th className="p-3 text-center">Facility</th>
+                            <th className="p-3 text-center">Location</th>
+                            <th className="p-3 text-center">Timing</th>
                             <th className="p-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -125,19 +123,15 @@ export default function AddEvent() {
                          hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                             >
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.title}
+                                    {d.name}
                                 </td>
 
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {d.venue}
+                                    {d.location}
                                 </td>
 
                                 <td className="p-3 text-center text-slate-800 dark:text-slate-200">
-                                    {new Date(d.eventDate).toLocaleDateString("en-IN", {
-                                        day: "numeric",
-                                        month: "long",
-                                        year: "numeric"
-                                    })}
+                                    {d.timings}
                                 </td>
 
                                 <td className="p-3">
@@ -161,6 +155,7 @@ export default function AddEvent() {
 
                                     </div>
                                 </td>
+
                             </tr>
                         ))}
                     </tbody>

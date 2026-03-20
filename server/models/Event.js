@@ -1,6 +1,6 @@
-const mongoose=require("mongoose");
+import mongoose from "mongoose";
 
-module.exports=mongoose.model("Event",new mongoose.Schema({
+export default mongoose.model("Event",new mongoose.Schema({
  title:String,
  venue:String,
  eventDate:String
